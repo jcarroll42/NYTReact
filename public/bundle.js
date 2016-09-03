@@ -25449,7 +25449,9 @@
 				startDate: "",
 				endDate: "",
 				results: "",
-				hey: "hey",
+				url: "",
+				mainHeadline: "",
+				removeId: "",
 				history: [] /*Note how we added in this history state variable*/
 			};
 		},
@@ -25461,6 +25463,19 @@
 				startDate: start,
 				endDate: end
 
+			});
+		},
+
+		setArticle: function setArticle(articleUrl, headline) {
+			this.setState({
+				url: articleUrl,
+				mainHeadline: headline
+			});
+		},
+
+		deleteArticle: function deleteArticle(_id) {
+			this.setState({
+				removeId: _id
 			});
 		},
 
@@ -25480,50 +25495,66 @@
 						});
 
 						// After we've received the result... then post the search term to our history. 
-						// helpers.postHistory(this.state.searchTerm)
-						// 	.then(function(data){
-						// 		console.log("Updated!");
 
-						// 		// After we've done the post... then get the updated history
-						// 		helpers.getHistory()
-						// 			.then(function(response){
-						// 				console.log("Current History", response.data);
-						// 				if (response != this.state.history){
-						// 					console.log ("History", response.data);
-
-						// 					this.setState({
-						// 						history: response.data
-						// 					})
-						// 				}
-						// 			}.bind(this))	
-						// 	}.bind(this)
-						// )
 					}
+				}.bind(this));
+			}
+			if (prevState.mainHeadline != this.state.mainHeadline) {
+				helpers.postArticle(this.state.url, this.state.mainHeadline).then(function (data) {
+					console.log("Updated!");
+
+					// 		// After we've done the post... then get the updated history
+					helpers.getArticle().then(function (response) {
+						console.log("Current Saved Articles", response.data);
+						if (response != this.state.history) {
+							console.log("History", response.data);
+
+							this.setState({
+								history: response.data
+							});
+						}
+					}.bind(this));
+				}.bind(this));
+			}
+			if (prevState.removeId != this.state.removeId) {
+				helpers.removeArticle(this.state.removeId).then(function (data) {
+					console.log("Updated!");
+
+					// 		// After we've done the post... then get the updated history
+					helpers.getArticle().then(function (response) {
+						console.log("Current Saved Articles", response.data);
+						if (response != this.state.history) {
+							console.log("History", response.data);
+
+							this.setState({
+								history: response.data
+							});
+						}
+					}.bind(this));
 				}.bind(this));
 			}
 		},
 
 		// The moment the page renders get the History
-		// componentDidMount: function(){
+		componentDidMount: function componentDidMount() {
 
-		// 	// Get the latest history.
-		// 	helpers.getHistory()
-		// 		.then(function(response){
-		// 			if (response != this.state.history){
-		// 				console.log ("History", response.data);
+			// Get the latest history.
+			helpers.getArticle().then(function (response) {
+				if (response != this.state.history) {
+					console.log("History", response.data);
 
-		// 				this.setState({
-		// 					history: response.data
-		// 				})
-		// 			}
-		// 		}.bind(this))
-		// },
+					this.setState({
+						history: response.data
+					});
+				}
+			}.bind(this));
+		},
 
 		// Here we render the function
 		render: function render() {
 			var that = this;
 			var childrenWithProps = React.Children.map(this.props.children, function (child) {
-				return React.cloneElement(child, { setTerm: that.setTerm, results: that.state.results, hey: that.state.hey });
+				return React.cloneElement(child, { setTerm: that.setTerm, results: that.state.results, history: that.state.history, setArticle: that.setArticle, deleteArticle: that.deleteArticle });
 			});
 			console.log(this.setTerm);
 
@@ -25630,7 +25661,6 @@
 
 			console.log("CLICK");
 			// console.log(this.state.searchTerm);
-			console.log(this.props.hey);
 			// console.log(this.props.setTerm);
 
 			// Set the parent to have the search term
@@ -25721,9 +25751,13 @@
 	var Results = React.createClass({
 		displayName: "Results",
 
+		saveArticle: function saveArticle(url, main) {
+			this.props.setArticle(url, main);
+		},
 
 		// Here we render the component
 		render: function render() {
+			var that = this;
 
 			return React.createElement(
 				"div",
@@ -25749,11 +25783,32 @@
 							React.createElement(
 								"div",
 								{ className: "panel-body" },
-								React.createElement(
-									"p",
-									null,
-									this.props.results
-								)
+								this.props.results.map(function (search, i) {
+									console.log(search.web_url);
+									return React.createElement(
+										"div",
+										null,
+										React.createElement(
+											"span",
+											null,
+											i + 1,
+											". "
+										),
+										React.createElement(
+											"a",
+											{ key: i, href: search.web_url },
+											search.headline.main
+										),
+										" ",
+										React.createElement(
+											"button",
+											{ className: "btn btn-primary", article_url: search.web_url, article_title: search.headline.main, onClick: that.saveArticle.bind(null, search.web_url, search.headline.main) },
+											"Save"
+										),
+										React.createElement("br", null),
+										React.createElement("br", null)
+									);
+								})
 							)
 						)
 					)
@@ -25777,9 +25832,13 @@
 	var Saved = React.createClass({
 		displayName: "Saved",
 
+		removeArticle: function removeArticle(_id) {
+			this.props.deleteArticle(_id);
+		},
 
 		// Here we render the component
 		render: function render() {
+			var that = this;
 
 			return React.createElement(
 				"div",
@@ -25799,52 +25858,37 @@
 								React.createElement(
 									"h3",
 									{ className: "panel-title" },
-									"Movie Info"
+									"Saved Articles"
 								)
 							),
 							React.createElement(
 								"div",
 								{ className: "panel-body" },
-								React.createElement(
-									"p",
-									null,
-									React.createElement(
-										"strong",
+								this.props.history.map(function (articles, i) {
+									return React.createElement(
+										"div",
 										null,
-										"Title:"
-									),
-									" Space Jam "
-								),
-								React.createElement(
-									"p",
-									null,
-									React.createElement(
-										"strong",
-										null,
-										"Year:"
-									),
-									" 1996"
-								),
-								React.createElement(
-									"p",
-									null,
-									React.createElement(
-										"strong",
-										null,
-										"Director:"
-									),
-									" Joe Pytka"
-								),
-								React.createElement(
-									"p",
-									null,
-									React.createElement(
-										"strong",
-										null,
-										"Stars:"
-									),
-									" Michael Jordan, Wayne Knight, Theresa Randle "
-								)
+										React.createElement(
+											"span",
+											null,
+											i + 1,
+											". "
+										),
+										React.createElement(
+											"a",
+											{ key: i, href: articles.url },
+											articles.title
+										),
+										" ",
+										React.createElement(
+											"button",
+											{ className: "btn btn-primary", onClick: that.removeArticle.bind(null, articles._id) },
+											"Delete"
+										),
+										React.createElement("br", null),
+										React.createElement("br", null)
+									);
+								})
 							)
 						)
 					)
@@ -25874,20 +25918,20 @@
 		// This function serves our purpose of running the query to geolocate. 
 		runQuery: function runQuery(term, startDate, endDate) {
 
-			console.log(location);
+			console.log(term, startDate, endDate);
 
 			//Figure out the geolocation
 			var queryURL = "https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=" + nytAPI + "&q=" + term + "&begin_date=" + startDate + "&end_date=" + endDate + "&page=1";
 
 			return axios.get(queryURL).then(function (response) {
 
-				console.log(response);
-				return response.docs;
+				console.log(response.data.response.docs);
+				return response.data.response.docs;
 			});
 		},
 
 		// This function hits our own server to retrieve the record of query results
-		getHistory: function getHistory() {
+		getArticle: function getArticle() {
 
 			return axios.get('/api').then(function (response) {
 
@@ -25897,9 +25941,17 @@
 		},
 
 		// This function posts new searches to our database.
-		postHistory: function postHistory(location) {
+		postArticle: function postArticle(url, main) {
 
-			return axios.post('/api', { location: location }).then(function (results) {
+			return axios.post('/api', { url: url, main: main }).then(function (results) {
+
+				console.log("Posted to MongoDB");
+				return results;
+			});
+		},
+		removeArticle: function removeArticle(_id) {
+
+			return axios.put('/api', { _id: _id }).then(function (results) {
 
 				console.log("Posted to MongoDB");
 				return results;

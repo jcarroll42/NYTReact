@@ -2,9 +2,13 @@
 var React = require('react');
 
 var Saved = React.createClass({
+	removeArticle: function(_id){
+		this.props.deleteArticle(_id);
+	},
 
 	// Here we render the component
 	render: function(){
+		var that = this;
 
 		return(
 
@@ -16,13 +20,12 @@ var Saved = React.createClass({
 							
 							<div className="panel panel-default">
 								<div className="panel-heading">
-									<h3 className="panel-title">Movie Info</h3>
+									<h3 className="panel-title">Saved Articles</h3>
 								</div>
 								<div className="panel-body">
-									<p><strong>Title:</strong> Space Jam </p>
-									<p><strong>Year:</strong> 1996</p>
-									<p><strong>Director:</strong> Joe Pytka</p>
-									<p><strong>Stars:</strong> Michael Jordan, Wayne Knight, Theresa Randle </p>
+									{this.props.history.map(function(articles, i){
+										return <div><span>{i + 1}. </span><a key={i} href={articles.url}>{articles.title}</a> <button className="btn btn-primary" onClick={that.removeArticle.bind(null, articles._id)}>Delete</button><br /><br /></div>
+									})}
 								</div>
 							</div>
 

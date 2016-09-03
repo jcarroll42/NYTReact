@@ -19,7 +19,9 @@ var Main = React.createClass({
 			startDate:"",
 			endDate:"",
 			results: "",
-			hey: "hey",
+			url:"",
+			mainHeadline: "",
+			removeId: "",
 			history: [] /*Note how we added in this history state variable*/
 		}
 	},	
@@ -31,6 +33,19 @@ var Main = React.createClass({
 			startDate: start,
 			endDate: end
 
+		})
+	},
+
+	setArticle: function(articleUrl, headline){
+		this.setState({
+			url: articleUrl,
+			mainHeadline: headline
+		})
+	},
+
+	deleteArticle: function(_id){
+		this.setState({
+			removeId: _id
 		})
 	},
 
@@ -52,51 +67,75 @@ var Main = React.createClass({
 						})
 
 						// After we've received the result... then post the search term to our history. 
-						// helpers.postHistory(this.state.searchTerm)
-						// 	.then(function(data){
-						// 		console.log("Updated!");
-
-						// 		// After we've done the post... then get the updated history
-						// 		helpers.getHistory()
-						// 			.then(function(response){
-						// 				console.log("Current History", response.data);
-						// 				if (response != this.state.history){
-						// 					console.log ("History", response.data);
-
-						// 					this.setState({
-						// 						history: response.data
-						// 					})
-						// 				}
-						// 			}.bind(this))	
-						// 	}.bind(this)
-						// )
+						
+						
 					}
 				}.bind(this))
 				
 			}
+		if (prevState.mainHeadline != this.state.mainHeadline){
+			helpers.postArticle(this.state.url, this.state.mainHeadline)
+							.then(function(data){
+								console.log("Updated!");
+
+						// 		// After we've done the post... then get the updated history
+								helpers.getArticle()
+									.then(function(response){
+										console.log("Current Saved Articles", response.data);
+										if (response != this.state.history){
+											console.log ("History", response.data);
+
+											this.setState({
+												history: response.data
+											})
+										}
+									}.bind(this))	
+							}.bind(this)
+							)
+		}
+		if (prevState.removeId != this.state.removeId){
+			helpers.removeArticle(this.state.removeId)
+							.then(function(data){
+								console.log("Updated!");
+
+						// 		// After we've done the post... then get the updated history
+								helpers.getArticle()
+									.then(function(response){
+										console.log("Current Saved Articles", response.data);
+										if (response != this.state.history){
+											console.log ("History", response.data);
+
+											this.setState({
+												history: response.data
+											})
+										}
+									}.bind(this))	
+							}.bind(this)
+							)
+		}
 	},
 
 	// The moment the page renders get the History
-	// componentDidMount: function(){
+	componentDidMount: function(){
 
-	// 	// Get the latest history.
-	// 	helpers.getHistory()
-	// 		.then(function(response){
-	// 			if (response != this.state.history){
-	// 				console.log ("History", response.data);
+		// Get the latest history.
+		helpers.getArticle()
+			.then(function(response){
+				if (response != this.state.history){
+					console.log ("History", response.data);
 
-	// 				this.setState({
-	// 					history: response.data
-	// 				})
-	// 			}
-	// 		}.bind(this))
-	// },
+					this.setState({
+						history: response.data
+					})
+				}
+			}.bind(this))
+	},
 
 	// Here we render the function
 	render: function(){
 		var that = this;
 		var childrenWithProps = React.Children.map(this.props.children, function(child) {
-            return React.cloneElement(child, {setTerm: that.setTerm, results: that.state.results, hey: that.state.hey});
+            return React.cloneElement(child, {setTerm: that.setTerm, results: that.state.results, history: that.state.history, setArticle: that.setArticle, deleteArticle: that.deleteArticle});
         });
         console.log(this.setTerm);
 
