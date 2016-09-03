@@ -60,9 +60,11 @@ var Form = React.createClass({
 								<br />
 								<h4 className=""><strong>Start Date</strong></h4>
 								<input type="text" className="form-control text-center" id="startDate" onChange= {this.handleChange} required/>
+								<p>Format: YYYYMMDD</p>
 								<br />
 								<h4 className=""><strong>End Date</strong></h4>
 								<input type="text" className="form-control text-center" id="endDate" onChange= {this.handleChange} required/>
+								<p>Format: YYYYMMDD</p>
 								<br />
 								<button type="button" className="btn btn-primary" onClick={this.handleClick}>Submit</button>
 							</div>

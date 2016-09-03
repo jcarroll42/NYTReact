@@ -25712,6 +25712,11 @@
 								)
 							),
 							React.createElement("input", { type: "text", className: "form-control text-center", id: "startDate", onChange: this.handleChange, required: true }),
+							React.createElement(
+								"p",
+								null,
+								"Format: YYYYMMDD"
+							),
 							React.createElement("br", null),
 							React.createElement(
 								"h4",
@@ -25723,6 +25728,11 @@
 								)
 							),
 							React.createElement("input", { type: "text", className: "form-control text-center", id: "endDate", onChange: this.handleChange, required: true }),
+							React.createElement(
+								"p",
+								null,
+								"Format: YYYYMMDD"
+							),
 							React.createElement("br", null),
 							React.createElement(
 								"button",
